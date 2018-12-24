@@ -1,0 +1,133 @@
+/////////////////////// 実行環境 ///////////////////////
+
+* Ubuntu 16.04
+* Core i5
+* nVidia GTX 1060 6G
+
+/////////////////////// 事前準備 ///////////////////////
+
+1. レポートファイルの削除 (起動時にダイアログが頻繁に出てうるさいので)
+  $ sudo rm -rf /var/crash/*
+
+2. nVidiaのドライバーインストール　
+  $ apt search nvidia
+  $ sudo apt-get install nvidia-384
+  $ sudo reboot
+
+3. vncサーバーの設定
+  1. アプリ検索でvinoを実行する
+  2. 「他のユーザが自分のデスクトップを表示できる」にチェック
+  3. 「このマシンへの接続を毎回確認する」のチェックを外す
+  4. 「パスワードの入力を要求する」をチェックし、「Pass1234」を入力する
+  5. 閉じるボタンを押下する
+  6. terminalを開始し、以下のコマンドを実行する
+  $ gsettings set org.gnome.Vino require-encryption false
+
+4. vncが接続できるかをmacから確認する
+  1. command + kを押下
+  2. サーバーアドレスに「vnc://ubuntuのipアドレス」を入力
+  3. ubuntuのデスクトップが表示される
+
+5. apt-get update, upgrade
+  $ sudo apt-get update
+  $ sudo apt-get upgrade
+  $ sudo apt-get distupgrade // 保留されていたものがあったので解消する
+  $ sudo apt-get -s dist-upgrade // 保留されていたものがあったので解消する
+
+6. cudaのインストール
+  $ sudo dpkg -i cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64.deb
+  $ sudo apt-get update 
+  $ sudo apt-get install cuda
+
+7. cudnnのインストール
+  $ sudo dpkg -i libcudnn6_6.0.21-1+cuda8.0_amd64.deb
+  $ sudo dpkg -i libcudnn6-dev_6.0.21-1+cuda8.0_amd64.deb
+  $ sudo dpkg -i libcudnn6-doc_6.0.21-1+cuda8.0_amd64.deb
+
+8. anacondaのインストール
+  $ chmod a+x Anaconda3-2018.12-Linux-x86_64.sh 
+  $ ./Anaconda3-2018.12-Linux-x86_64.sh
+
+9. anacondaのpath追加
+  $ vi ~/.bashrc
+   ※以下を末尾に追加
+  ・・・
+  ANACONDA_HOME=$HOME/anaconda3
+  export PATH=$PATH:$ANACONDA_HOME/bin
+
+10. pythonの仮想環境構築
+  $ conda create -n py35 python=3.5 anaconda
+
+/////////////////////// caffe(ssd版)の環境構築 ///////////////////////
+
+1. 必要なパッケージのインストール
+$ sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler libatlas-base-dev libgflags-dev libgoogle-glog-dev liblmdb-dev python-dev
+$ sudo apt-get install --no-install-recommends libboost-all-dev
+$ sudo apt-get install git
+$ sudo apt-get install libhdf5-dev
+
+2. .bashrcに以下を追加
+
+  export LD_LIBRARY_PATH="$ANACONDA_HOME/envs/py35/lib"
+
+　　※追加後に以下のコマンドを実行
+  $ source .bashrc
+  $ sudo ldconfig
+
+3. ソースのダウンロード
+
+  $ git clone https://github.com/weiliu89/caffe.git
+  $ git checkout ssd
+
+4. Makefile.configの編集
+
+  $ cd caffe
+  $ cp Makefile.config.example Makefile.config
+  $ vi Makefile.config
+
+  1. 下記のコメントを外す
+  USE_CUDNN := 1
+
+  2. 下記のコメントを外す
+  WITH_PYTHON_LAYER := 1
+
+  3. 下記をコメントアウト
+  # PYTHON_INCLUDE := /usr/include/python2.7 \
+  #               /usr/lib/python2.7/dist-packages/numpy/core/include
+
+  4. 以下を追加
+  ANACONDA_HOME := $(HOME)/anaconda3
+  PYTHON_INCLUDE := $(ANACONDA_HOME)/envs/py35/include \
+              $(ANACONDA_HOME)/envs/py35/include/python3.5m \
+              $(ANACONDA_HOME)/envs/py35/lib/python3.5/site-packages/numpy/core/include
+
+  5. 下記をコメントアウト
+  #PYTHON_LIB := /usr/lib
+  # PYTHON_LIB := $(ANACONDA_HOME)/lib
+
+  6. 下記を追加
+  PYTHON_LIB := $(ANACONDA_HOME)/envs/py35/lib
+  
+  7. hdf5のパスを追加
+  INCLUDE_DIRS := $(PYTHON_INCLUDE) /usr/local/include /usr/include/hdf5/serial
+  LIBRARY_DIRS := $(PYTHON_LIB) /usr/local/lib /usr/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/hdf5/serial
+
+  8. boost_python追加
+  PYTHON_LIBRARIES := boost_python-py35 python3.5m
+
+5. caffeのビルド
+ $ make -j4 all
+ $ make test -j4
+ $ make runtest -j8
+
+5. .bashrcに以下を追加する
+export PYTHONPATH=/home/nakayama/caffe/caffe_ssd/python
+
+6. caffeをimportできるかを確認する
+$ python
+> import caffe
+
+7. エラーが出た場合
+  ・「ImportError: No module named 'google'」が出た場合
+     $ pip install protobuf
+
