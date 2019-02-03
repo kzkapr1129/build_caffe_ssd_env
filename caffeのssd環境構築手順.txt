@@ -121,6 +121,7 @@ $ sudo apt-get install libopenblas-dev
  $ make -j4 all
  $ make test -j4
  $ make runtest -j8
+ $ make pycaffe
 
 ※「make -j4 all」でTIFFのエラーがでる場合
 $ sudo apt install libtiff-dev
@@ -137,4 +138,7 @@ $ python
 7. エラーが出た場合
   ・「ImportError: No module named 'google'」が出た場合
      $ pip install protobuf
+    
+  ・「ImportError: No module named 'skimage'」が出た場合
+     $ conda install scikit-image
 
