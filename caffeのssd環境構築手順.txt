@@ -31,7 +31,7 @@
 5. apt-get update, upgrade
   $ sudo apt-get update
   $ sudo apt-get upgrade
-  $ sudo apt-get distupgrade // 保留されていたものがあったので解消する
+  $ sudo apt-get dist-upgrade // 保留されていたものがあったので解消する
   $ sudo apt-get -s dist-upgrade // 保留されていたものがあったので解消する
 
 6. cudaのインストール
