@@ -53,7 +53,7 @@
    ※以下を末尾に追加
   ・・・
   ANACONDA_HOME=$HOME/anaconda3
-  export PATH=$PATH:$ANACONDA_HOME/bin
+  export PATH=$ANACONDA_HOME/bin:$PATH
 
 10. pythonの仮想環境構築
   $ conda create -n py35 python=3.5 anaconda
@@ -65,6 +65,7 @@ $ sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-de
 $ sudo apt-get install --no-install-recommends libboost-all-dev
 $ sudo apt-get install git
 $ sudo apt-get install libhdf5-dev
+$ sudo apt-get install libopenblas-dev
 
 2. .bashrcに以下を追加
 
@@ -116,9 +117,15 @@ $ sudo apt-get install libhdf5-dev
   PYTHON_LIBRARIES := boost_python-py35 python3.5m
 
 5. caffeのビルド
+ $ source activate py35 (いらないかも？)
  $ make -j4 all
  $ make test -j4
  $ make runtest -j8
+
+※「make -j4 all」でTIFFのエラーがでる場合
+$ sudo apt install libtiff-dev
+$ conda uninstall libtiff
+(このあと続けて　makeする。だめならリブートして再度conda uninstallしてmake)
 
 5. .bashrcに以下を追加する
 export PYTHONPATH=/home/nakayama/caffe/caffe_ssd/python
